@@ -3,14 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
+use Illuminate\Http\Request;
 
 class CategoryController extends Controller
 {
-    /**
-     * Get all categories
-     */
-    public function index()
+    public function index(Request $request)
     {
-        return Category::all();
+        $perPage = $request->input('per_page', 4);
+        $categories = Category::orderBy('id')->paginate($perPage);
+
+        return response()->json($categories);
     }
 }

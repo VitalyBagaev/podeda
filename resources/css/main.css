@@ -1,5 +1,5 @@
 :root {
-  --primary-color: #dc2626; /* OMK Red */
+  --primary-color: #dc2626;
   --primary-hover: #b91c1c;
   --secondary-color: #4b5563;
   --bg-light: #f3f4f6;
@@ -40,14 +40,12 @@ button {
   padding: 0 20px;
 }
 
-/* Typography */
 h1, h2, h3, h4 {
   font-weight: 700;
   margin-bottom: 1rem;
   color: #111827;
 }
 
-/* Buttons */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -85,7 +83,6 @@ h1, h2, h3, h4 {
   font-size: 0.85rem;
 }
 
-/* Cards */
 .card {
   background: var(--card-bg);
   border-radius: 8px;
@@ -103,7 +100,6 @@ h1, h2, h3, h4 {
     border-top: none;
 }
 
-/* Layout helpers */
 .mt-2 { margin-top: 0.5rem; }
 .mt-4 { margin-top: 1rem; }
 .mt-8 { margin-top: 2rem; }
@@ -120,7 +116,6 @@ h1, h2, h3, h4 {
 .text-center { text-align: center; }
 .w-full { width: 100%; }
 
-/* Form Elements */
 .form-group {
     margin-bottom: 1.25rem
 }
@@ -146,7 +141,6 @@ label {
   font-size: 0.9rem;
 }
 
-/* Header */
 .header {
   background: white;
   border-bottom: 1px solid var(--border-color);
@@ -240,7 +234,6 @@ label {
     color: var(--text-main);
 }
 
-/* Footer */
 .footer {
   background: #111827;
   color: white;
@@ -275,7 +268,6 @@ label {
     font-size: 0.85rem;
 }
 
-/* Hero Section */
 .hero-section {
   position: relative;
   background-color: #f8fafc;
@@ -320,7 +312,6 @@ label {
   gap: 1rem;
 }
 
-/* Service Grid */
 .service-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -407,7 +398,6 @@ label {
   border-color: var(--primary-color);
 }
 
-/* Comments */
 .comment-card {
     background: white;
     border: 1px solid var(--border-color);
@@ -508,7 +498,6 @@ label {
   white-space: nowrap;
 }
 
-/* Auth Page */
 .auth-page {
   display: flex;
   align-items: center;
@@ -556,7 +545,6 @@ label {
     border: 1px solid #bbf7d0;
 }
 
-/* Profile Page */
 .profile-layout {
   display: flex;
   gap: 40px;
@@ -649,7 +637,6 @@ label {
   gap: 16px;
 }
 
-/* Responsive Design */
 @media (max-width: 1024px) {
   .hero-title {
     font-size: 2.5rem;
@@ -691,7 +678,7 @@ label {
   }
 
   .hero-bg-img {
-    display: none; /* Hide complex bg on mobile for better readability */
+    display: none;
   }
 
   .hero-actions {
@@ -764,7 +751,6 @@ label {
   }
 }
 
-/* Additional Styles */
 .service-grid-compact {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));

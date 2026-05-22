@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -37,16 +36,6 @@ class User extends Authenticatable
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
         ];
-    }
-
-    /**
-     * Аксессор: автоматически склеивает относительный путь с папкой public/storage
-     */
-    protected function avatar(): Attribute
-    {
-        return Attribute::make(
-            get: fn ($value) => $value ? asset('storage/'.$value) : null,
-        );
     }
 
     public function comments()

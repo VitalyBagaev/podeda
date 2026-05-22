@@ -1,42 +1,42 @@
 <template>
-  <header class="header">
-    <div class="header-container">
-      <a href="#" @click.prevent="changePage('HomePage')" class="logo-box">
-        <img src="/images/unique_omk_it_logo.png" alt="ИТ ОМК" class="logo-img" />
-        <div class="logo-text">
-          <span class="logo-it">ИТ</span> ОМК
+  <header class="bg-danger border-bottom border-secondary sticky-top">
+    <div class="container-fluid">
+      <div class="d-flex justify-content-between align-items-center py-3">
+        <a href="#" @click.prevent="changePage('HomePage')" class="text-decoration-none text-white">
+          <img src="/images/unique_omk_it_logo.png" alt="ИТ ОМК" class="img-fluid" style="height: 44px;" />
+          <div class="d-inline-block align-middle ms-2">
+            <span class="text-white fw-bold">ИТ</span> ОМК
+          </div>
+        </a>
+
+        <nav class="d-flex gap-3 text-white">
+          <!-- Навигация может быть добавлена здесь -->
+        </nav>
+
+        <div class="d-flex align-items-center gap-3">
+          <template v-if="!user">
+            <a href="#" @click.prevent="changePage('LoginPage')" class="text-decoration-none text-white fw-medium">Вход</a>
+            <a href="#" @click.prevent="changePage('RegisterPage')" class="btn btn-light btn-sm text-danger">Регистрация</a>
+          </template>
+          <template v-else>
+            <a href="#" class="d-flex align-items-center text-decoration-none text-white" @click.prevent="changePage('ProfilePage', null)">
+              <img
+                :src="userInfo.avatar ? PUBLIC + userInfo.avatar : '/images/default_avatar.png'"
+                class="rounded-circle border border-secondary me-2"
+                style="width: 36px; height: 36px;"
+                alt="Профиль"
+              />
+              <span class="fw-medium">{{ userInfo.full_name || userInfo.login }}</span>
+            </a>
+            <a
+              v-if="userInfo.role == 'admin'"
+              href="#"
+              @click.prevent="changePage('AdminPage')"
+              class="text-decoration-none text-white fw-medium"
+            >Админ-панель</a>
+            <a href="#" @click.prevent="logout()" class="text-decoration-none text-white fw-medium">Выход</a>
+          </template>
         </div>
-      </a>
-      
-      <nav class="header-nav"></nav>
-
-      <div class="auth-buttons flex-align-center">
-        <template v-if="!user">
-          <a href="#" @click.prevent="changePage('LoginPage')" class="nav-link mr-4">Вход</a>
-          <a href="#" @click.prevent="changePage('RegisterPage')" class="btn btn-primary btn-small">Регистрация</a>
-        </template>
-        <template v-else>
-          <!-- Аватар и никнейм -->
-          <a href="#" class="user-info-box mr-4" @click.prevent="changePage('ProfilePage')">
-            <img
-              :src="userInfo.avatar ? '/storage/' + userInfo.avatar : '/images/default_avatar.png'"
-              class="header-avatar mr-3"
-              alt="Профиль"
-            >
-            <span class="header-username">{{ userInfo.full_name || userInfo.login }}</span>
-          </a>
-
-          <!-- Админ-панель отображается как обычный пункт хедера -->
-          <a
-            v-if="userInfo && userInfo.role === 'admin'"
-            href="#"
-            @click.prevent="changePage('AdminPage')"
-            class="nav-link mr-4"
-          >Админ-панель</a>
-
-          <!-- Выход -->
-          <a href="#" @click.prevent="logout()" class="nav-link">Выход</a>
-        </template>
       </div>
     </div>
   </header>
@@ -45,7 +45,7 @@
 <script>
 export default {
   name: 'HeaderComponent',
-  props: ['changePage', 'user', 'logout', 'datasend', 'userInfo'],
+  props: ['changePage', 'user', 'logout', 'datasend', 'userInfo', 'PUBLIC'],
 }
 </script>
 

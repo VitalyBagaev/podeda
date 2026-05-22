@@ -1,51 +1,54 @@
 <template>
   <div id="wrapper">
-    <HeaderComponent 
-      :changePage="changePage" 
-      :user="user" 
-      :logout="logout" 
-      :datasend="datasend" 
-      :userInfo="userInfo" 
+    <HeaderComponent
+      :changePage="changePage"
+      :user="user"
+      :logout="logout"
+      :datasend="datasend"
+      :userInfo="userInfo"
+      :PUBLIC="PUBLIC"
     />
     <main class="main-content" style="min-height: 70vh;">
-      <HomePage 
-        v-if="page === 'HomePage'" 
-        :changePage="changePage" 
-        :datasend="datasend" 
-        :userInfo="userInfo" 
-      />
-      <RegisterPage 
-        v-if="page === 'RegisterPage'" 
-        :datasend="datasend" 
+      <HomePage
+        v-if="page == 'HomePage'"
         :changePage="changePage"
-        :changeToken="changeToken" 
-      />
-      <LoginPage 
-        v-if="page === 'LoginPage'" 
-        :datasend="datasend" 
-        :changePage="changePage" 
-        :changeToken="changeToken" 
-      />
-      <ProfilePage 
-        v-if="page === 'ProfilePage'" 
-        :datasend="datasend" 
-        :user="userInfo" 
+        :datasend="datasend"
         :userInfo="userInfo"
-        :pageId="pageId" 
-        :getUser="getUser" 
-        :changePage="changePage" 
+        :PUBLIC="PUBLIC"
       />
-      <AdminPage 
-        v-if="page === 'AdminPage'" 
-        :changePage="changePage" 
-        :datasend="datasend" 
-        :userInfo="userInfo" 
-      />
-      <EditCommentPage 
-        v-if="page === 'EditCommentPage' && pageId" 
-        :pageId="pageId" 
+      <RegisterPage
+        v-if="page == 'RegisterPage'"
+        :datasend="datasend"
         :changePage="changePage"
-        :datasend="datasend" 
+        :changeToken="changeToken"
+      />
+      <LoginPage
+        v-if="page == 'LoginPage'"
+        :datasend="datasend"
+        :changePage="changePage"
+        :changeToken="changeToken"
+      />
+      <ProfilePage
+        v-if="page == 'ProfilePage'"
+        :datasend="datasend"
+        :userInfo="userInfo"
+        :pageId="pageId"
+        :getUser="getUser"
+        :changePage="changePage"
+        :PUBLIC="PUBLIC"
+      />
+      <AdminPage
+        v-if="page == 'AdminPage'"
+        :changePage="changePage"
+        :datasend="datasend"
+        :PUBLIC="PUBLIC"
+      />
+      <EditCommentPage
+        v-if="page == 'EditCommentPage' && pageId"
+        :pageId="pageId"
+        :changePage="changePage"
+        :datasend="datasend"
+        :PUBLIC="PUBLIC"
       />
     </main>
     <FooterComponent />
@@ -91,7 +94,7 @@ export default {
   },
   methods: {
     getUser() {
-      this.datasend('me')
+      return this.datasend('user')
         .then((response) => {
           if (response.id) {
             this.user = true;
@@ -101,6 +104,7 @@ export default {
             this.user = false;
             this.userInfo = {};
           }
+          return response;
         })
         .catch((error) => {
           console.log('error', error);
@@ -113,15 +117,21 @@ export default {
       this.page = page;
       this.pageId = pageId;
       localStorage.setItem('page', page);
-      localStorage.setItem('pageId', pageId);
+      if (pageId) {
+        localStorage.setItem('pageId', pageId);
+      } else {
+        localStorage.removeItem('pageId');
+      }
     },
     logout() {
-      this.datasend('logout', 'POST')
+      this.datasend('logout')
         .then((result) => {
-          localStorage.removeItem('token');
-          this.changePage('HomePage');
-          this.user = false;
-          this.userInfo = {};
+          if (result) {
+            localStorage.removeItem('token');
+            this.changePage('HomePage');
+            this.user = false;
+            this.userInfo = {};
+          }
         })
         .catch((error) => console.error(error));
     },
@@ -144,7 +154,7 @@ export default {
         redirect: 'follow',
       };
 
-      if (method !== 'GET') {
+      if (method != 'GET') {
         requestOptions.body = formdata;
       }
 

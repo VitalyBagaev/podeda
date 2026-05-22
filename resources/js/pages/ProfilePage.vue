@@ -1,274 +1,306 @@
 <template>
-  <div class="container py-8">
-    <h1 style="margin-bottom: 30px;">Личный кабинет</h1>
+  <div class="container py-4">
+    <div class="row">
+      <div class="col">
+        <h1 class="mb-4">{{ isAdminView ? 'Профиль пользователя' : 'Личный кабинет' }}</h1>
 
-    <div v-if="successMessage" class="alert alert-success">
-      {{ successMessage }}
+        <div class="card mb-4 shadow">
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-4 text-center">
+                <img
+                  :src="displayUser.avatar ? PUBLIC + displayUser.avatar : '/images/default_avatar.png'"
+                  alt="Аватар"
+                  class="img-fluid rounded mb-3"
+                  style="max-width: 150px; height: 150px; object-fit: cover;"
+                />
+                <input v-if="isOwnProfile" type="file" id="avatar" accept="image/*" class="form-control form-control-sm" />
+              </div>
+              <div class="col-md-8">
+                <form @submit.prevent="useredit">
+                  <div class="mb-3">
+                    <label for="full_name" class="form-label">ФИО</label>
+                    <input v-if="isOwnProfile" v-model="full_name" type="text" class="form-control" id="full_name" />
+                    <div v-else class="form-control-plaintext">{{ displayUser.full_name }}</div>
+                    <div class="invalid-feedback d-block" v-if="errors.full_name">{{ errors.full_name.join('. ') }}</div>
+                  </div>
+
+                  <div class="mb-3">
+                    <label for="login" class="form-label">Логин</label>
+                    <div class="form-control-plaintext">{{ displayUser.login }}</div>
+                  </div>
+
+                  <div class="mb-3">
+                    <label for="email" class="form-label">Email</label>
+                    <input v-if="isOwnProfile" v-model="email" type="email" class="form-control" id="email" />
+                    <div v-else class="form-control-plaintext">{{ displayUser.email }}</div>
+                    <div class="invalid-feedback d-block" v-if="errors.email">{{ errors.email.join('. ') }}</div>
+                  </div>
+
+                  <div class="mb-3">
+                    <label for="phone" class="form-label">Телефон</label>
+                    <input v-if="isOwnProfile" v-model="phone" type="tel" class="form-control" id="phone" placeholder="+7(999)-999-99-99" />
+                    <div v-else class="form-control-plaintext">{{ displayUser.phone }}</div>
+                    <div class="invalid-feedback d-block" v-if="errors.phone">{{ errors.phone.join('. ') }}</div>
+                  </div>
+
+                  <button v-if="isOwnProfile" type="submit" class="btn btn-primary">Обновить данные</button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <section v-if="isOwnProfile">
+          <h2 class="mb-4">История услуг</h2>
+          <div class="card mb-4 shadow">
+            <div class="card-body">
+              <form @submit.prevent="serviceadd">
+                <div class="mb-3">
+                  <label for="category_id" class="form-label">Категория</label>
+                  <select v-model="category_id" class="form-select" id="category_id">
+                    <option :value="null">Выберите</option>
+                    <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
+                  </select>
+                  <div class="invalid-feedback d-block" v-if="serviceErrors.category_id">{{ serviceErrors.category_id.join('. ') }}</div>
+                </div>
+
+                <div class="mb-3">
+                  <label for="service_date" class="form-label">Дата</label>
+                  <input type="date" v-model="service_date" class="form-control" id="service_date" />
+                  <div class="invalid-feedback d-block" v-if="serviceErrors.service_date">{{ serviceErrors.service_date.join('. ') }}</div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Добавить услугу</button>
+              </form>
+            </div>
+          </div>
+
+          <div v-for="service in displayUser.services" :key="service.id" class="card mb-3 shadow">
+            <div class="card-body">
+              <h4 class="card-title">{{ service.category ? service.category.name : '' }}</h4>
+              <p class="card-text">{{ service.service_date }}</p>
+              <button type="button" class="btn btn-outline-danger btn-sm" @click="servicedel(service.id)">Удалить</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="mt-4">
+          <h2 class="mb-4">{{ isAdminView ? 'Отзывы пользователя' : 'Мои отзывы' }}</h2>
+
+          <div v-if="!displayUser.comments || displayUser.comments.length == 0" class="card text-center py-4 shadow">
+            <p class="mb-0">Отзывов нет.</p>
+          </div>
+
+          <div v-for="comment in displayUser.comments" :key="comment.id" class="card mb-3 shadow">
+            <div class="card-body">
+              <p><b>{{ comment.category ? comment.category.name : '' }}</b> — {{ comment.created_at }}</p>
+              <p class="card-text">{{ comment.text }}</p>
+
+              <div class="btn-group" role="group">
+                <template v-if="isOwnProfile">
+                  <button type="button" class="btn btn-outline-primary btn-sm" @click="changePage('EditCommentPage', comment.id)">Редактировать</button>
+                  <button type="button" class="btn btn-outline-danger btn-sm" @click="commentdel(comment.id)">Удалить</button>
+                </template>
+
+                <template v-if="isAdminView">
+                  <button type="button" class="btn btn-outline-primary btn-sm" @click="showReply(comment)">Ответить</button>
+                  <button type="button" class="btn btn-outline-primary btn-sm" @click="changePage('EditCommentPage', comment.id)">Редактировать</button>
+                  <button type="button" class="btn btn-outline-danger btn-sm" @click="commentdel(comment.id)">Удалить</button>
+                </template>
+              </div>
+
+              <div v-if="replyId == comment.id" class="card mt-3">
+                <div class="card-body">
+                  <textarea v-model="replyText" rows="3" class="form-control mb-2"></textarea>
+                  <button type="button" class="btn btn-primary btn-sm" @click="answer(comment.id)">Сохранить ответ</button>
+                  <button type="button" class="btn btn-outline-secondary btn-sm" @click="replyId = null">Отмена</button>
+                </div>
+              </div>
+
+              <div v-if="comment.replies && comment.replies[0]" class="card mt-3">
+                <div class="card-body">
+                  <p class="card-text"><b>Ответ:</b> {{ comment.replies[0].text }}</p>
+                  <div v-if="isAdminView" class="btn-group" role="group">
+                    <button type="button" class="btn btn-outline-primary btn-sm" @click="showReply(comment)">Редактировать ответ</button>
+                    <button type="button" class="btn btn-outline-danger btn-sm" @click="answerdel(comment.replies[0].id)">Удалить ответ</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
     </div>
-
-    <div class="card mb-8">
-      <div class="profile-layout">
-        <div class="profile-sidebar">
-          <div class="avatar-wrapper">
-            <img :src="avatarPreview || (displayUser.avatar ? '/storage/' + displayUser.avatar : '/images/default_avatar.png')" alt="Аватар" class="profile-avatar-large" />
-            <a v-if="userInfo && displayUser && (userInfo.id === displayUser.id || userInfo.role === 'admin')" href="#" class="avatar-upload-overlay"
-              @click.prevent="$refs.avatarInput.click()">
-              <span>Выбрать фото</span>
-            </a>
-          </div>
-          <input type="file" ref="avatarInput" id="avatar" style="display: none" accept="image/*" @change="handleAvatarChange" />
-          <p v-if="avatarFile" class="text-muted mt-2 text-center" style="font-size: 0.8rem;">Фото выбрано. Нажмите "Обновить данные" для сохранения.</p>
-        </div>
-        <div class="profile-details">
-          <form action="?" method="post">
-            <div class="info-grid">
-              <div class="info-item">
-                <label>ФИО</label>
-                <input v-model="full_name" type="text" placeholder="Иванов Иван Иванович" />
-              </div>
-              <div class="info-item">
-                <label>Логин (нельзя изменить)</label>
-                <div class="info-value">{{ displayUser.login }}</div>
-              </div>
-              <div class="info-item">
-                <label>Электронная почта</label>
-                <input v-model="email" type="email" placeholder="example@omk-it.ru" />
-              </div>
-              <div class="info-item">
-                <label>Телефон</label>
-                <input v-model="phone" type="tel" placeholder="+7(999)-999-99-99" />
-              </div>
-            </div>
-            <div v-if="errors" class="mt-4">
-              <div v-if="errors.full_name" class="alert alert-danger">{{ errors.full_name.join('. ') }}</div>
-              <div v-if="errors.email" class="alert alert-danger">{{ errors.email.join('. ') }}</div>
-              <div v-if="errors.phone" class="alert alert-danger">{{ errors.phone.join('. ') }}</div>
-              <div v-if="errors.avatar" class="alert alert-danger">{{ errors.avatar.join('. ') }}</div>
-            </div>
-            <button v-if="userInfo && displayUser && (userInfo.id === displayUser.id || userInfo.role === 'admin')" type="button" class="btn btn-primary mt-4" @click="updateProfile">
-              Обновить данные
-            </button>
-          </form>
-        </div>
-      </div>
-    </div>
-
-    <section class="section">
-      <h2>История полученных услуг</h2>
-
-      <div class="card mb-8">
-        <h3>Добавить полученную услугу</h3>
-        <form action="?" method="post">
-          <div class="form-group">
-            <label>Выберите категорию</label>
-            <select v-model="newService.category_id">
-              <option :value="null">Выберите категорию</option>
-              <option v-for="cat in availableCategories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
-            </select>
-            <div class="alert alert-danger" v-if="serviceErrors && serviceErrors.category_id">
-              {{ serviceErrors.category_id.join('. ') }}
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Дата услуги</label>
-            <input type="date" v-model="newService.service_date">
-            <div class="alert alert-danger" v-if="serviceErrors && serviceErrors.service_date">
-              {{ serviceErrors.service_date.join('. ') }}
-            </div>
-          </div>
-
-          <button type="button" class="btn btn-primary" @click="addService">
-            Добавить в историю
-          </button>
-        </form>
-      </div>
-
-      <div v-if="!displayUser.services || displayUser.services.length === 0" class="card text-center py-8">
-        <p>Вы еще не добавили услуг в историю.</p>
-      </div>
-      <div v-else class="services-list">
-        <div v-for="service in displayUser.services" :key="service.id" class="card">
-          <div class="flex-align-center">
-            <div class="flex-grow">
-              <h4>{{ service.category ? service.category.name : 'Категория не указана' }}</h4>
-              <p class="text-muted">{{ formatDate(service.service_date) }}</p>
-            </div>
-            <button type="button" class="btn btn-secondary btn-small"
-              @click="removeService(service.id)">Удалить</button>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="section">
-      <h2>История отзывов</h2>
-      <div v-if="!displayUser.comments || displayUser.comments.length === 0" class="card text-center py-8">
-        <p>Вы еще не оставляли отзывов.</p>
-      </div>
-      <div v-else class="comments-list">
-        <div v-for="comment in displayUser.comments" :key="comment.id" class="comment-card">
-          <div class="comment-header">
-            <img :src="displayUser.avatar ? '/storage/' + displayUser.avatar : '/images/default_avatar.png'" class="comment-avatar-img" alt="Аватар" />
-            <div class="comment-meta">
-              <span class="comment-author">{{ comment.category ? comment.category.name : 'Категория не указана' }}</span>
-              <span class="comment-time">{{ formatDate(comment.created_at) }}</span>
-            </div>
-          </div>
-          <p class="comment-text">{{ comment.text }}</p>
-          <div class="comment-actions">
-            <button type="button" class="btn btn-secondary btn-small"
-              @click="changePage('EditCommentPage', comment.id)">Редактировать</button>
-            <button type="button" class="btn btn-secondary btn-small btn-danger-outline"
-              @click="deleteComment(comment.id)">Удалить</button>
-          </div>
-        </div>
-      </div>
-    </section>
   </div>
 </template>
 
 <script>
 export default {
   name: 'ProfilePage',
-  props: ['changePage', 'datasend', 'user', 'userInfo', 'getUser', 'pageId'],
+  props: ['changePage', 'datasend', 'userInfo', 'getUser', 'pageId', 'PUBLIC'],
   data() {
     return {
       categories: [],
       displayUser: {},
-      full_name: '',
-      email: '',
-      phone: '',
-      errors: null,
-      newService: {
-        category_id: null,
-        service_date: new Date().toISOString().substr(0, 10)
-      },
-      serviceErrors: null,
-      successMessage: '',
-      avatarFile: null,
-      avatarPreview: null
-    }
-  },
-  computed: {
-    availableCategories() {
-      if (!this.displayUser.services) return this.categories;
-      const addedCategoryIds = this.displayUser.services.map(s => s.category_id);
-      return this.categories.filter(cat => !addedCategoryIds.includes(cat.id));
-    }
+      full_name: null,
+      email: null,
+      phone: null,
+      category_id: null,
+      service_date: new Date().toISOString().substr(0, 10),
+      errors: {},
+      serviceErrors: {},
+      isOwnProfile: true,
+      isAdminView: false,
+      replyId: null,
+      replyText: null,
+      replyEditId: null,
+    };
   },
   mounted() {
     this.loadCategories();
-    if (this.pageId && this.pageId != this.userInfo.id) {
-      this.loadUserProfile();
+    if (this.userInfo.id) {
+      this.loadProfile();
     } else {
-      this.displayUser = this.user;
-      this.full_name = this.user.full_name || '';
-      this.email = this.user.email || '';
-      this.phone = this.user.phone || '';
-    }
-  },
-  watch: {
-    pageId(newVal) {
-      if (newVal && newVal != this.userInfo.id) {
-        this.loadUserProfile();
-      } else {
-        this.displayUser = this.user;
-        this.full_name = this.user.full_name || '';
-        this.email = this.user.email || '';
-        this.phone = this.user.phone || '';
-      }
+      this.getUser().then(() => this.loadProfile());
     }
   },
   methods: {
-    loadUserProfile() {
-      this.datasend(`users/${this.pageId}`)
-        .then(res => {
-          this.displayUser = res;
-          this.full_name = res.full_name || '';
-          this.email = res.email || '';
-          this.phone = res.phone || '';
+    loadCategories() {
+      this.datasend('categories?per_page=100')
+        .then((result) => {
+          console.log(result);
+          this.categories = result.data || result;
         });
     },
-    handleAvatarChange(e) {
-      const file = e.target.files[0];
-      if (file) {
-        this.avatarFile = file;
-        this.avatarPreview = URL.createObjectURL(file);
+    loadProfile() {
+      this.isOwnProfile = !this.pageId || this.pageId == this.userInfo.id;
+      this.isAdminView = this.userInfo.role == 'admin' && !this.isOwnProfile;
+
+      if (this.isAdminView) {
+        this.datasend('user/' + this.pageId)
+          .then((result) => {
+            console.log(result);
+            this.displayUser = result;
+          });
+      } else {
+        this.displayUser = this.userInfo;
+        this.full_name = this.userInfo.full_name;
+        this.email = this.userInfo.email;
+        this.phone = this.userInfo.phone;
       }
     },
-    updateProfile() {
-      this.errors = null;
-      this.successMessage = '';
-      let fd = new FormData();
-      fd.append('_method', 'PUT');
-      if (this.full_name) fd.append('full_name', this.full_name);
-      if (this.email) fd.append('email', this.email);
-      if (this.phone) fd.append('phone', this.phone);
-      if (this.avatarFile) fd.append('avatar', this.avatarFile);
+    useredit() {
+      this.errors = {};
+      let formdata = new FormData();
+      if (this.full_name) formdata.append('full_name', this.full_name);
+      if (this.email) formdata.append('email', this.email);
+      if (this.phone) formdata.append('phone', this.phone);
 
-      const userId = this.displayUser.id;
+      let avatar = document.querySelector('#avatar');
+      if (avatar && avatar.files[0]) {
+        formdata.append('avatar', avatar.files[0]);
+      }
 
-      this.datasend(`users/${userId}`, 'POST', fd)
+      this.datasend('useredit/' + this.displayUser.id, 'POST', formdata)
         .then((result) => {
+          console.log(result);
           if (result.errors) {
             this.errors = result.errors;
-          } else {
-            if (userId == this.userInfo.id) this.getUser();
-            else this.loadUserProfile();
-            this.avatarFile = null;
-            this.avatarPreview = null;
-            this.successMessage = 'Данные профиля успешно обновлены!';
-            setTimeout(() => { this.successMessage = ''; }, 5000);
+          }
+          if (result.id) {
+            this.displayUser = result;
+            this.full_name = result.full_name;
+            this.email = result.email;
+            this.phone = result.phone;
+            this.getUser();
           }
         });
     },
-    loadCategories() {
-      this.datasend('categories')
-        .then(res => {
-          this.categories = res.data || res;
-        });
-    },
-    formatDate(dateStr) {
-      if (!dateStr) return '';
-      return new Date(dateStr).toLocaleDateString('ru-RU');
-    },
-    addService() {
-      this.serviceErrors = null;
-      let fd = new FormData();
-      if (this.newService.category_id) fd.append('category_id', this.newService.category_id);
-      if (this.newService.service_date) fd.append('service_date', this.newService.service_date);
+    serviceadd() {
+      this.serviceErrors = {};
+      let formdata = new FormData();
+      if (this.category_id) formdata.append('category_id', this.category_id);
+      if (this.service_date) formdata.append('service_date', this.service_date);
 
-      this.datasend(`userCatAdd/${this.displayUser.id}`, 'POST', fd)
-        .then(res => {
-          if (res.errors) {
-            this.serviceErrors = res.errors;
-          } else {
-            if (this.displayUser.id == this.userInfo.id) this.getUser();
-            else this.loadUserProfile();
-            this.newService.category_id = null;
-            this.successMessage = 'Услуга успешно добавлена!';
-            setTimeout(() => { this.successMessage = ''; }, 5000);
+      this.datasend('serviceadd', 'POST', formdata)
+        .then((result) => {
+          console.log(result);
+          if (result.errors) {
+            this.serviceErrors = result.errors;
+          }
+          if (result.message == 'ok') {
+            this.getUser().then((u) => {
+              if (u && u.id) {
+                this.displayUser = u;
+              }
+            });
+            this.category_id = null;
           }
         });
     },
-    removeService(id) {
-      if (confirm('Удалить услугу из истории?')) {
-        this.datasend(`userCatDel/${id}`, 'DELETE')
-          .then(() => {
-            if (this.displayUser.id == this.userInfo.id) this.getUser();
-            else this.loadUserProfile();
+    servicedel(id) {
+      this.datasend('servicedel/' + id, 'DELETE')
+        .then(() => {
+          this.getUser().then((u) => {
+            if (u && u.id) {
+              this.displayUser = u;
+            }
           });
+        });
+    },
+    reloadComments() {
+      if (this.isAdminView) {
+        this.datasend('user/' + this.pageId)
+          .then((result) => {
+            this.displayUser = result;
+          });
+      } else {
+        this.getUser().then((u) => {
+          if (u && u.id) {
+            this.displayUser = u;
+          }
+        });
       }
     },
-    deleteComment(id) {
-      if (confirm('Удалить отзыв?')) {
-        this.datasend(`userCommDel/${id}`, 'DELETE')
-          .then(() => {
-            if (this.displayUser.id == this.userInfo.id) this.getUser();
-            else this.loadUserProfile();
-          });
+    commentdel(id) {
+      if (confirm('Удалить?')) {
+        this.datasend('commentdel/' + id, 'DELETE').then(() => this.reloadComments());
       }
-    }
-  }
-}
+    },
+    showReply(comment) {
+      this.replyId = comment.id;
+      if (comment.replies && comment.replies[0]) {
+        this.replyEditId = comment.replies[0].id;
+        this.replyText = comment.replies[0].text;
+      } else {
+        this.replyEditId = null;
+        this.replyText = null;
+      }
+    },
+    answer(commentId) {
+      let formdata = new FormData();
+      if (this.replyText) formdata.append('text', this.replyText);
+
+      let route = 'answer/' + commentId;
+      if (this.replyEditId) {
+        route = 'answeredit/' + this.replyEditId;
+      }
+
+      this.datasend(route, 'POST', formdata)
+        .then((result) => {
+          console.log(result);
+          if (result.message == 'ok') {
+            this.replyId = null;
+            this.reloadComments();
+          }
+        });
+    },
+    answerdel(id) {
+      if (confirm('Удалить ответ?')) {
+        this.datasend('answerdel/' + id, 'DELETE').then(() => this.reloadComments());
+      }
+    },
+  },
+};
 </script>

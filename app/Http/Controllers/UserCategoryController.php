@@ -2,60 +2,35 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\AddServiceRequest;
 use App\Models\UserService;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class UserCategoryController extends Controller
 {
-    /**
-     * Get user services
-     */
     public function index()
     {
         $services = UserService::where('user_id', Auth::id())->with('category')->get();
+
         return response()->json($services);
     }
 
-    /**
-     * Show user service
-     */
-    public function show($id)
+    public function store(AddServiceRequest $request)
     {
-        $service = UserService::where('id', $id)
-            ->where('user_id', Auth::id())
-            ->with('category')
-            ->firstOrFail();
+        $service = new UserService();
+        $service->user_id = Auth::id();
+        $service->category_id = $request->category_id;
+        $service->service_date = $request->service_date;
+        $service->save();
+        $service->load('category');
 
-        return response()->json($service);
+        return response()->json(['message' => 'ok', 'id' => $service->id, 'service' => $service]);
     }
 
-    /**
-     * Store user service
-     */
-    public function store($id, Request $request)
+    public function destroy($service)
     {
-        $validated = $request->validate([
-            'category_id' => 'required|integer|exists:categories,id',
-            'service_date' => 'required|date',
-        ]);
+        UserService::where('id', $service)->where('user_id', Auth::id())->delete();
 
-        $service = UserService::create([
-            'user_id' => Auth::id(),
-            'category_id' => $validated['category_id'],
-            'service_date' => $validated['service_date'],
-        ]);
-
-        return response()->json($service->load('category'), 201);
-    }
-
-    /**
-     * Delete user service
-     */
-    public function destroy($id)
-    {
-        UserService::where('id', $id)->where('user_id', Auth::id())->delete();
-
-        return response()->json(['message' => 'Услуга удалена.']);
+        return response()->json(['message' => 'ok']);
     }
 }

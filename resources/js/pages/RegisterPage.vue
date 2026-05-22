@@ -1,53 +1,59 @@
 <template>
-  <div class="auth-page">
-    <div class="auth-card card">
-      <div class="text-center mb-8">
-        <img src="/images/unique_omk_it_logo.png" alt="ИТ ОМК" class="auth-logo mb-4" />
-        <h1 class="logo-text mb-2"><span class="logo-it">ИТ</span> ОМК</h1>
-        <p class="text-muted">Регистрация нового пользователя</p>
-      </div>
-      <form action="?" method="post">
-        <div class="form-group">
-          <label>ФИО</label>
-          <input v-model="full_name" type="text" placeholder="Иванов Иван Иванович" />
-          <div class="alert alert-danger" v-if="errors.full_name">
-            {{ errors.full_name.join('. ') }}
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-md-8 col-lg-6">
+        <div class="card shadow">
+          <div class="card-body p-4">
+            <div class="text-center mb-4">
+              <img src="/images/unique_omk_it_logo.png" alt="ИТ ОМК" class="img-fluid mb-3" style="max-width: 150px;">
+              <h1 class="h3 mb-2"><span class="text-primary">ИТ</span> ОМК</h1>
+              <p class="text-muted">Регистрация нового пользователя</p>
+            </div>
+            <form @submit.prevent="register">
+              <div class="mb-3">
+                <label for="full_name" class="form-label">ФИО</label>
+                <input v-model="full_name" type="text" class="form-control" id="full_name" placeholder="Иванов Иван Иванович">
+                <div class="invalid-feedback d-block" v-if="errors.full_name">
+                  {{ errors.full_name.join('. ') }}
+                </div>
+              </div>
+              <div class="mb-3">
+                <label for="login" class="form-label">Логин</label>
+                <input v-model="login" type="text" class="form-control" id="login" placeholder="Придумайте логин">
+                <div class="invalid-feedback d-block" v-if="errors.login">
+                  {{ errors.login.join('. ') }}
+                </div>
+              </div>
+              <div class="mb-3">
+                <label for="email" class="form-label">Email</label>
+                <input v-model="email" type="email" class="form-control" id="email" placeholder="example@omk-it.ru">
+                <div class="invalid-feedback d-block" v-if="errors.email">
+                  {{ errors.email.join('. ') }}
+                </div>
+              </div>
+              <div class="mb-3">
+                <label for="phone" class="form-label">Телефон</label>
+                <input v-model="phone" type="tel" class="form-control" id="phone" placeholder="+7(999)-999-99-99">
+                <div class="invalid-feedback d-block" v-if="errors.phone">
+                  {{ errors.phone.join('. ') }}
+                </div>
+              </div>
+              <div class="mb-3">
+                <label for="password" class="form-label">Пароль</label>
+                <input v-model="password" type="password" class="form-control" id="password" placeholder="Минимум 6 символов">
+                <div class="invalid-feedback d-block" v-if="errors.password">
+                  {{ errors.password.join('. ') }}
+                </div>
+              </div>
+              <button type="submit" class="btn btn-primary w-100">
+                Зарегистрироваться
+              </button>
+            </form>
+            <div class="mt-4 text-center">
+              <p class="mb-0">Уже есть аккаунт? <a href="#" @click.prevent="changePage('LoginPage')" class="text-decoration-none">Войти</a></p>
+            </div>
           </div>
         </div>
-        <div class="form-group">
-          <label>Логин</label>
-          <input v-model="login" type="text" placeholder="Придумайте логин" />
-          <div class="alert alert-danger" v-if="errors.login">
-            {{ errors.login.join('. ') }}
-          </div>
-        </div>
-        <div class="form-group">
-          <label>Email</label>
-          <input v-model="email" type="email" placeholder="example@omk-it.ru" />
-          <div class="alert alert-danger" v-if="errors.email">
-            {{ errors.email.join('. ') }}
-          </div>
-        </div>
-        <div class="form-group">
-          <label>Телефон</label>
-          <input v-model="phone" type="tel" placeholder="+7(999)-999-99-99" />
-          <div class="alert alert-danger" v-if="errors.phone">
-            {{ errors.phone.join('. ') }}
-          </div>
-        </div>
-        <div class="form-group">
-          <label>Пароль</label>
-          <input v-model="password" type="password" placeholder="••••••••" />
-          <div class="alert alert-danger" v-if="errors.password">
-            {{ errors.password.join('. ') }}
-          </div>
-        </div>
-        <button type="button" class="btn btn-primary w-full mt-4" @click="register">
-          Зарегистрироваться
-        </button>
-      </form>
-      <div class="mt-8 text-center">
-        <p>Уже есть аккаунт? <a href="#" @click.prevent="changePage('LoginPage')" class="link-red">Войти</a></p>
       </div>
     </div>
   </div>
@@ -64,6 +70,7 @@ export default {
       email: null,
       phone: null,
       password: null,
+      avatar: null,
       errors: {},
     }
   },
@@ -85,6 +92,7 @@ export default {
           }
           if (result.token) {
             this.changeToken(result.token);
+            localStorage.setItem('token', result.token);
             this.changePage('HomePage');
           }
         })

@@ -10,19 +10,18 @@ class AdminSeeder extends Seeder
 {
     public function run(): void
     {
-        User::updateOrCreate(
-            [
-                'login' => 'admin',
-                ],
-            [
-                'full_name' => 'admin',
-                'phone' => '+77777777777',
-                'email' => 'admin@admin',
-                'password' => Hash::make('password'),
-                'role' => 'admin',
-                'avatar' => null,
-                'id' => '1',
-            ]
-        );
+        $user = User::where('login', 'admin')->first();
+
+        if (!$user) {
+            $user = new User();
+            $user->login = 'admin';
+        }
+
+        $user->full_name = 'Администратор Системы';
+        $user->phone = '+7(999)-999-99-99';
+        $user->email = 'admin@omk-it.ru';
+        $user->password = 'password';
+        $user->role = 'admin';
+        $user->save();
     }
 }
